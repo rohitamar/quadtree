@@ -32,14 +32,14 @@ class Rectangle:
     def __repr__(self) -> str:
         return f"Rectangle(bl: {self.bl} tr: {self.tr})" 
     
-    def points() -> List[Point]:
-        return [self.bl, Point(bl.x, tr.y), self.tr, Point(tr.x, bl.y)]
+    def pyg() -> list[int]:
+        return [self.bl.x, self.tr.y, abs(self.bl.x - self.tr.x), abs(self.bl.y - self.tr.y)]
 
 class Quadtree:
     def __init__(self, bbox: Rectangle, size: int):
         self.size: int = size
         self.bbox: Rectangle = bbox 
-        self.arr: List[Point] = []
+        self.arr: list[Point] = []
         self.divided: bool = False 
 
         self.ne: Quadtree = None
@@ -70,7 +70,7 @@ class Quadtree:
 
         return self.ne.insert(p) or self.nw.insert(p) or self.se.insert(p) or self.sw.insert(p)
     
-    
+
 
     
 
