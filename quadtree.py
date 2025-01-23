@@ -7,39 +7,22 @@ class Point:
         return f"Point({self.x}, {self.y})"
 
 class Rectangle:
-    def __init__(self, bl: Point, tr: Point):
-        if not isinstance(bl, Point):
-            raise TypeError(f"Input must be of type Point, but given {type(bl).__name__}")
-        
-        if not isinstance(tr, Point):
-            raise TypeErorr(f"Input must of type Point, but given {type(tr).__name__}")
+    def __init__(self, tl: tuple, width: float, height: float):
+        # tl = top left, width, height
+        self.tl: tuple = tl 
+        self.width: int = width 
+        self.height: int = height 
 
-        # bl = bottom left, tr = top right
-        self.bl: Point = bl 
-        self.tr: Point = tr 
+    def __contains__(self, p: tuple) -> bool:
+        return self.tl[0] <= p[0] <= self.tl[0] + self.width and self.tl[1] <= p[1] <= self.tl[1] + self.height 
 
-    def __contains__(self, p: Point) -> bool:
-        if not isinstance(p, Point):
-            raise TypeError(f"Input must of type Point, but given {type(p).__name__}")
-        mn_x, mx_x = min(self.bl.x, self.tr.x), max(self.bl.x, self.tr.x)
-        mn_y, mx_y = min(self.bl.y, self.tr.y), max(self.bl.y, self.tr.y)
-
-        return mn_x <= p.x <= mx_x and mn_y <= p.y <= mx_y
-    
-    def midpoint(self) -> Point:
-        return Point((self.bl.x + self.tr.x) / 2, (self.bl.y + self.tr.y) / 2)
-
-    def __repr__(self) -> str:
-        return f"Rectangle(bl: {self.bl} tr: {self.tr})" 
-    
-    def pyg() -> list[int]:
-        return [self.bl.x, self.tr.y, abs(self.bl.x - self.tr.x), abs(self.bl.y - self.tr.y)]
-
+    def pyg(self) -> tuple:
+        return *self.tl, self.width, self.height
 class Quadtree:
     def __init__(self, bbox: Rectangle, size: int):
         self.size: int = size
         self.bbox: Rectangle = bbox 
-        self.arr: list[Point] = []
+        self.arr: list[tuple] = []
         self.divided: bool = False 
 
         self.ne: Quadtree = None
@@ -47,28 +30,32 @@ class Quadtree:
         self.se: Quadtree = None 
         self.sw: Quadtree = None  
 
-    def insert(self, p) -> bool:
-        if not isinstance(p, Point):
-            raise TypeError(f"Input must of type Point, but given {type(p).__name__}")
+    def insert(self, p: tuple) -> bool:
+        if p not in self.bbox:
+            return False
 
         if len(self.arr) < self.size:
             self.arr.append(p)
             return True
+        
+        self.divided = True 
+        bl = self.bbox.tl 
+        w = self.bbox.width 
+        h = self.bbox.height 
 
-        mt = self.bbox.midpoint()
-        bl = self.bbox.bl 
-        tr = self.bbox.tr 
+        self.ne = Quadtree(Rectangle((bl[0] + w / 2, bl[1]), w / 2, h / 2), self.size)
+        self.se = Quadtree(Rectangle((bl[0] + w / 2, bl[1] + h / 2), w / 2, h / 2), self.size) 
+        self.nw = Quadtree(Rectangle(bl, w / 2, h / 2), self.size)
+        self.sw = Quadtree(Rectangle((bl[0], bl[1] + h / 2), w / 2, h / 2), self.size)
 
-        self.ne = Quadtree(Rectangle(mt, tr), self.size)
-        self.sw = Quadtree(Rectangle(bl, mt), self.size) 
-
-        tl: Point = Point(bl.x, tr.y)
-        br: Point = Point(tr.x, bl.y)
-
-        self.nw = Quadtree(Rectangle(Point(tl.x, mt.y), Point(mt.x, tl.y)), self.size)
-        self.se = Quadtree(Rectangle(Point(br.x, tl.y), Point(tl.x, br.y)), self.size)
-
-        return self.ne.insert(p) or self.nw.insert(p) or self.se.insert(p) or self.sw.insert(p)
+        self.arr.append(p)
+        for p in self.arr:
+            self.ne.insert(p)
+            self.se.insert(p)
+            self.nw.insert(p)
+            self.sw.insert(p)
+        
+        return True 
     
 
 
