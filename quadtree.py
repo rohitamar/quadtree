@@ -1,11 +1,3 @@
-class Point:
-    def __init__(self, x: float, y: float) -> None:
-        self.x: float = x
-        self.y: float = y
-
-    def __repr__(self) -> str:
-        return f"Point({self.x}, {self.y})"
-
 class Rectangle:
     def __init__(self, tl: tuple, width: float, height: float):
         # tl = top left, width, height
@@ -18,6 +10,7 @@ class Rectangle:
 
     def pyg(self) -> tuple:
         return *self.tl, self.width, self.height
+    
 class Quadtree:
     def __init__(self, bbox: Rectangle, size: int):
         self.size: int = size
@@ -30,13 +23,13 @@ class Quadtree:
         self.se: Quadtree = None 
         self.sw: Quadtree = None  
 
-    def insert(self, p: tuple) -> bool:
+    def insert(self, p: tuple) -> None:
         if p not in self.bbox:
-            return False
+            return
 
         if len(self.arr) < self.size:
             self.arr.append(p)
-            return True
+            return
         
         self.divided = True 
         bl = self.bbox.tl 
@@ -56,9 +49,20 @@ class Quadtree:
             self.sw.insert(p)
         
         return True 
-    
+            
+def rects_and_pts(root: Quadtree):
+    st, pts, rects = [root], [], []
+    while st:
+        u = st.pop()
+        if not u: continue 
+        rects.append(u.bbox.pyg())
+        if not u.divided:
+            for p in u.arr:
+                pts.append(p)
+        else:
+            st.extend([u.ne, u.nw, u.se, u.sw])
 
-
+    return rects, pts
     
 
 
