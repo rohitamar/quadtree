@@ -23,9 +23,9 @@ class Quadtree:
         self.se: Quadtree = None 
         self.sw: Quadtree = None  
 
-    def insert(self, p: tuple) -> None:
+    def insert(self, p: tuple) -> bool:
         if p not in self.bbox:
-            return
+            return False
 
         if len(self.arr) < self.size:
             self.arr.append(p)
@@ -43,11 +43,9 @@ class Quadtree:
 
         self.arr.append(p)
         for p in self.arr:
-            self.ne.insert(p)
-            self.se.insert(p)
-            self.nw.insert(p)
-            self.sw.insert(p)
-        
+            for qt in [self.ne, self.se, self.nw, self.sw]:
+                if qt.insert(p):
+                    break
         return True 
             
 def rects_and_pts(root: Quadtree):
